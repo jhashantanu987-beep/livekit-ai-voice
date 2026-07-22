@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Voice Agent Ad</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #030014;
+    overflow: hidden;
+    width: 1080px;
+    height: 1920px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  canvas#particles { position: fixed; top: 0; left: 0; z-index: 0; }
+
+  .scene {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .scene.active { opacity: 1; }
+
+  /* Scene 1: AI Brain */
+  .brain-container {
+    position: relative;
+    width: 400px; height: 400px;
+  }
+  .brain-ring {
+    position: absolute;
+    border: 2px solid rgba(139, 92, 246, 0.3);
+    border-radius: 50%;
+    animation: brainSpin 4s linear infinite;
+  }
+  .brain-ring:nth-child(1) { width: 400px; height: 400px; top: 0; left: 0; }
+  .brain-ring:nth-child(2) { width: 320px; height: 320px; top: 40px; left: 40px; border-color: rgba(59, 130, 246, 0.4); animation-duration: 3s; animation-direction: reverse; }
+  .brain-ring:nth-child(3) { width: 240px; height: 240px; top: 80px; left: 80px; border-color: rgba(236, 72, 153, 0.4); animation-duration: 5s; }
+  .brain-ring:nth-child(4) { width: 160px; height: 160px; top: 120px; left: 120px; border-color: rgba(34, 211, 238, 0.5); animation-duration: 2.5s; animation-direction: reverse; }
+  
+  .brain-core {
+    position: absolute;
+    width: 80px; height: 80px;
+    top: 160px; left: 160px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.8), rgba(59, 130, 246, 0.4), transparent);
+    border-radius: 50%;
+    animation: corePulse 2s ease-in-out infinite;
+  }
+
+  .brain-dot {
+    position: absolute;
+    width: 8px; height: 8px;
+    background: #8b5cf6;
+    border-radius: 50%;
+    box-shadow: 0 0 15px #8b5cf6, 0 0 30px #8b5cf6;
+  }
+
+  @keyframes brainSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes corePulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.5); opacity: 1; } }
+
+  /* Scene 2: Voice Waveform */
+  .waveform-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 300px;
+  }
+  .wave-bar {
+    width: 8px;
+    background: linear-gradient(to top, #3b82f6, #8b5cf6, #ec4899);
+    border-radius: 4px;
+    animation: waveAnim 1.2s ease-in-out infinite;
+  }
+  @keyframes waveAnim {
+    0%, 100% { height: 20px; opacity: 0.4; }
+    50% { height: var(--max-h, 150px); opacity: 1; }
+  }
+
+  /* Scene 3: Phone Call */
+  .phone-container { position: relative; }
+  .phone-body {
+    width: 200px; height: 400px;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-radius: 40px;
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+  }
+  .phone-notch {
+    width: 80px; height: 25px;
+    background: #030014;
+    border-radius: 0 0 15px 15px;
+    margin: 0 auto;
+  }
+  .phone-screen-content {
+    padding: 30px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .caller-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    animation: avatarPulse 2s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .caller-avatar::after {
+    content: '';
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+  }
+  @keyframes avatarPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.5); }
+    50% { box-shadow: 0 0 0 30px rgba(139, 92, 246, 0); }
+  }
+  .call-waves {
+    display: flex; gap: 4px; align-items: center;
+  }
+  .call-wave-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #22d3ee;
+    animation: callDot 1.5s ease-in-out infinite;
+  }
+  .call-wave-dot:nth-child(2) { animation-delay: 0.2s; }
+  .call-wave-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes callDot {
+    0%, 100% { transform: scale(0.5); opacity: 0.3; }
+    50% { transform: scale(1.2); opacity: 1; }
+  }
+
+  .call-ripple {
+    position: absolute;
+    width: 300px; height: 300px;
+    border: 2px solid rgba(34, 211, 238, 0.3);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ripple 2s ease-out infinite;
+  }
+  .call-ripple:nth-child(2) { animation-delay: 0.5s; }
+  .call-ripple:nth-child(3) { animation-delay: 1s; }
+  @keyframes ripple {
+    0% { width: 200px; height: 200px; opacity: 0.6; }
+    100% { width: 600px; height: 600px; opacity: 0; }
+  }
+
+  /* Scene 4: Dashboard */
+  .dashboard {
+    width: 700px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 30px;
+    backdrop-filter: blur(10px);
+    animation: dashFloat 3s ease-in-out infinite;
+  }
+  @keyframes dashFloat {
+    0%, 100% { transform: translateY(0) rotateX(2deg); }
+    50% { transform: translateY(-15px) rotateX(-2deg); }
+  }
+  .dash-header {
+    display: flex; gap: 8px; margin-bottom: 25px;
+  }
+  .dash-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dash-dot:nth-child(1) { background: #ef4444; }
+  .dash-dot:nth-child(2) { background: #eab308; }
+  .dash-dot:nth-child(3) { background: #22c55e; }
+
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+  .dash-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px;
+    animation: cardReveal 0.8s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .dash-card:nth-child(1) { animation-delay: 0.2s; }
+  .dash-card:nth-child(2) { animation-delay: 0.4s; }
+  .dash-card:nth-child(3) { animation-delay: 0.6s; }
+  .dash-card:nth-child(4) { animation-delay: 0.8s; }
+  @keyframes cardReveal { to { opacity: 1; transform: translateY(0); } }
+
+  .dash-bar {
+    height: 8px;
+    border-radius: 4px;
+    margin: 8px 0;
+    animation: barFill 2s ease forwards;
+  }
+  .dash-bar.b1 { background: linear-gradient(90deg, #8b5cf6, #3b82f6); width: 0; }
+  .dash-bar.b2 { background: linear-gradient(90deg, #ec4899, #8b5cf6); width: 0; }
+  .dash-bar.b3 { background: linear-gradient(90deg, #22d3ee, #3b82f6); width: 0; }
+  .dash-bar.b4 { background: linear-gradient(90deg, #22c55e, #22d3ee); width: 0; }
+  @keyframes barFill { to { width: 100%; } }
+
+  .dash-circle {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top-color: #8b5cf6;
+    animation: circSpin 1.5s linear infinite;
+    margin: 10px auto;
+  }
+  @keyframes circSpin { to { transform: rotate(360deg); } }
+
+  .mini-wave {
+    display: flex; gap: 3px; align-items: flex-end; height: 40px; margin-top: 10px;
+  }
+  .mini-wave span {
+    width: 4px; background: #3b82f6; border-radius: 2px;
+    animation: miniW 0.8s ease-in-out infinite alternate;
+  }
+  .mini-wave span:nth-child(1) { animation-delay: 0s; }
+  .mini-wave span:nth-child(2) { animation-delay: 0.1s; }
+  .mini-wave span:nth-child(3) { animation-delay: 0.2s; }
+  .mini-wave span:nth-child(4) { animation-delay: 0.3s; }
+  .mini-wave span:nth-child(5) { animation-delay: 0.4s; }
+  .mini-wave span:nth-child(6) { animation-delay: 0.5s; }
+  .mini-wave span:nth-child(7) { animation-delay: 0.6s; }
+  @keyframes miniW {
+    from { height: 8px; }
+    to { height: 35px; }
+  }
+
+  /* Scene 5: Network / Connections */
+  .network-container { position: relative; width: 500px; height: 500px; }
+  .node {
+    position: absolute;
+    width: 20px; height: 20px;
+    background: #8b5cf6;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(139,92,246,0.6);
+    animation: nodeGlow 2s ease-in-out infinite alternate;
+  }
+  @keyframes nodeGlow {
+    from { box-shadow: 0 0 10px rgba(139,92,246,0.4); transform: scale(1); }
+    to { box-shadow: 0 0 30px rgba(139,92,246,0.8); transform: scale(1.3); }
+  }
+  .network-line {
+    position: absolute;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(139,92,246,0.5), transparent);
+    transform-origin: left center;
+    animation: linePulse 2s ease-in-out infinite;
+  }
+  @keyframes linePulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* Scene 6: Logo reveal */
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+  .logo-icon {
+    width: 120px; height: 120px;
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6, #22d3ee);
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: logoReveal 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform: scale(0) rotate(-180deg);
+    box-shadow: 0 0 60px rgba(139,92,246,0.5);
+  }
+  .logo-icon::after {
+    content: '⚡';
+    font-size: 50px;
+  }
+  @keyframes logoReveal {
+    to { transform: scale(1) rotate(0deg); }
+  }
+  .logo-glow {
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%);
+    border-radius: 50%;
+    animation: logoGlowPulse 2s ease-in-out infinite;
+  }
+  @keyframes logoGlowPulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
+
+  /* Floating particles overlay */
+  .floating-particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .fp {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: rgba(139, 92, 246, 0.6);
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  /* Ambient gradients */
+  .ambient {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: 0;
+    animation: ambientMove 8s ease-in-out infinite alternate;
+  }
+  .amb1 { width: 400px; height: 400px; background: rgba(139,92,246,0.15); top: -100px; left: -100px; }
+  .amb2 { width: 500px; height: 500px; background: rgba(59,130,246,0.12); bottom: -150px; right: -100px; animation-delay: 2s; }
+  .amb3 { width: 300px; height: 300px; background: rgba(236,72,153,0.1); top: 50%; left: 50%; animation-delay: 4s; }
+  @keyframes ambientMove {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(50px, -50px) scale(1.2); }
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient amb1"></div>
+<div class="ambient amb2"></div>
+<div class="ambient amb3"></div>
+
+<div class="floating-particles" id="floatingParticles"></div>
+
+<!-- Scene 1: AI Brain -->
+<div class="scene active" id="scene1">
+  <div class="brain-container">
+    <div class="brain-ring"></div>
+    <div class="brain-ring"></div>
+    <div class="brain-ring"></div>
+    <div class="brain-ring"></div>
+    <div class="brain-core"></div>
+  </div>
+</div>
+
+<!-- Scene 2: Voice Waveform -->
+<div class="scene" id="scene2">
+  <div class="waveform-container" id="waveform"></div>
+</div>
+
+<!-- Scene 3: Phone Call -->
+<div class="scene" id="scene3">
+  <div class="phone-container">
+    <div class="call-ripple"></div>
+    <div class="call-ripple"></div>
+    <div class="call-ripple"></div>
+    <div class="phone-body">
+      <div class="phone-notch"></div>
+      <div class="phone-screen-content">
+        <div class="caller-avatar"></div>
+        <div class="call-waves">
+          <div class="call-wave-dot"></div>
+          <div class="call-wave-dot"></div>
+          <div class="call-wave-dot"></div>
+        </div>
+        <div class="mini-wave">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 4: Dashboard -->
+<div class="scene" id="scene4">
+  <div class="dashboard">
+    <div class="dash-header">
+      <div class="dash-dot"></div>
+      <div class="dash-dot"></div>
+      <div class="dash-dot"></div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dash-bar b1"></div>
+        <div class="dash-bar b2"></div>
+        <div class="dash-bar b1"></div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-circle"></div>
+      </div>
+      <div class="dash-card">
+        <div class="mini-wave">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-bar b3"></div>
+        <div class="dash-bar b4"></div>
+        <div class="dash-bar b3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scene 5: Network -->
+<div class="scene" id="scene5">
+  <div class="network-container" id="network"></div>
+</div>
+
+<!-- Scene 6: Logo Reveal -->
+<div class="scene" id="scene6">
+  <div class="logo-container">
+    <div class="logo-glow"></div>
+    <div class="logo-icon"></div>
+  </div>
+</div>
+
+<script>
+  // Generate floating particles
+  const fpContainer = document.getElementById('floatingParticles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'fp';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (4 + Math.random() * 6) + 's';
+    p.style.animationDelay = Math.random() * 8 + 's';
+    p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+    const colors = ['rgba(139,92,246,0.6)', 'rgba(59,130,246,0.6)', 'rgba(236,72,153,0.5)', 'rgba(34,211,238,0.5)'];
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    fpContainer.appendChild(p);
+  }
+
+  // Generate waveform bars
+  const waveContainer = document.getElementById('waveform');
+  for (let i = 0; i < 40; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'wave-bar';
+    const maxH = 40 + Math.sin(i * 0.3) * 80 + Math.random() * 60;
+    bar.style.setProperty('--max-h', maxH + 'px');
+    bar.style.animationDelay = (i * 0.05) + 's';
+    waveContainer.appendChild(bar);
+  }
+
+  // Generate network nodes
+  const networkContainer = document.getElementById('network');
+  const nodes = [];
+  for (let i = 0; i < 12; i++) {
+    const node = document.createElement('div');
+    node.className = 'node';
+    const x = 50 + Math.random() * 400;
+    const y = 50 + Math.random() * 400;
+    node.style.left = x + 'px';
+    node.style.top = y + 'px';
+    node.style.animationDelay = (Math.random() * 2) + 's';
+    const colors = ['#8b5cf6', '#3b82f6', '#ec4899', '#22d3ee'];
+    node.style.background = colors[Math.floor(Math.random() * colors.length)];
+    node.style.boxShadow = `0 0 20px ${node.style.background}`;
+    networkContainer.appendChild(node);
+    nodes.push({ x: x + 10, y: y + 10 });
+  }
+  // Connect some nodes with lines
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dist = Math.sqrt(Math.pow(nodes[j].x - nodes[i].x, 2) + Math.pow(nodes[j].y - nodes[i].y, 2));
+      if (dist < 200) {
+        const line = document.createElement('div');
+        line.className = 'network-line';
+        line.style.left = nodes[i].x + 'px';
+        line.style.top = nodes[i].y + 'px';
+        line.style.width = dist + 'px';
+        const angle = Math.atan2(nodes[j].y - nodes[i].y, nodes[j].x - nodes[i].x) * 180 / Math.PI;
+        line.style.transform = `rotate(${angle}deg)`;
+        line.style.animationDelay = (Math.random() * 2) + 's';
+        networkContainer.appendChild(line);
+      }
+    }
+  }
+
+  // Scene transitions
+  const scenes = ['scene1', 'scene2', 'scene3', 'scene4', 'scene5', 'scene6'];
+  const durations = [9000, 9000, 9000, 9000, 9000, 9000]; // ~54 seconds total
+  let current = 0;
+
+  function nextScene() {
+    if (current >= scenes.length - 1) return;
+    document.getElementById(scenes[current]).classList.remove('active');
+    current++;
+    document.getElementById(scenes[current]).classList.add('active');
+    if (current < scenes.length - 1) {
+      setTimeout(nextScene, durations[current]);
+    }
+  }
+
+  setTimeout(nextScene, durations[0]);
+</script>
+
+</body>
+</html>
